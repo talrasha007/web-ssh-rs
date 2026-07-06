@@ -22,6 +22,30 @@
   fitAddon.fit();
   term.focus();
 
+  function parseTarget() {
+    if (location.pathname.startsWith("/ssh/")) {
+      const raw = decodeURIComponent(location.pathname.slice("/ssh/".length));
+      const at = raw.indexOf("@");
+      if (at === -1) return null;
+      const user = raw.slice(0, at);
+      const rest = raw.slice(at + 1);
+      const colon = rest.lastIndexOf(":");
+      return colon === -1
+        ? { user, host: rest, port: 22 }
+        : { user, host: rest.slice(0, colon), port: Number(rest.slice(colon + 1)) };
+    }
+    const params = new URLSearchParams(location.search);
+    const user = params.get("user");
+    const host = params.get("host");
+    if (!user || !host) return null;
+    return { user, host, port: params.has("port") ? Number(params.get("port")) : 22 };
+  }
+
+  const target = parseTarget();
+  if (target) {
+    document.title = target.port === 22 ? `${target.user}@${target.host}` : `${target.user}@${target.host}:${target.port}`;
+  }
+
   const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
   const wsPath = location.pathname.startsWith("/ssh/")
     ? "/ws/" + location.pathname.slice("/ssh/".length)
