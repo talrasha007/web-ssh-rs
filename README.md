@@ -11,8 +11,9 @@ of it.
 
 ## Features
 
-- Connect to any SSH host by URL: path style (`/ssh/user@host:port`) or query style
-  (`/ssh?user=&host=&port=`).
+- Connect to any SSH host by URL: path style (`/ssh/user@host` or `/ssh/user@host:port`) or
+  query style (`/ssh?user=&host=` or `/ssh?user=&host=&port=`). `port` defaults to `22` when
+  omitted.
 - Two authentication modes:
   - **Public key** — configure one private key at startup (`-i`/`--identity-file`); it's used to
     authenticate as whatever user the URL specifies (bastion/jump-box style).

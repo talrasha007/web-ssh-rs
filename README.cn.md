@@ -9,8 +9,8 @@ English version: [README.md](README.md)。
 
 ## 特性
 
-- 通过 URL 连接任意 SSH 主机：路径形式（`/ssh/user@host:port`）或查询参数形式
-  （`/ssh?user=&host=&port=`）。
+- 通过 URL 连接任意 SSH 主机：路径形式（`/ssh/user@host` 或 `/ssh/user@host:port`）或查询参数
+  形式（`/ssh?user=&host=` 或 `/ssh?user=&host=&port=`）。不传 `port` 时默认使用 `22`。
 - 两种认证方式：
   - **公钥认证** —— 启动时通过 `-i`/`--identity-file` 配置一把私钥，用它以 URL 中指定的用户名去
     认证目标主机（类似跳板机模式）。
