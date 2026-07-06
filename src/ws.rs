@@ -4,14 +4,8 @@ use russh::client::{Handle, Msg};
 use russh::{Channel, ChannelMsg};
 use tokio_util::sync::CancellationToken;
 
+use crate::protocol::ClientMsg;
 use crate::ssh::SshClientHandler;
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all = "lowercase")]
-enum ClientMsg {
-    Data { data: String },
-    Resize { cols: u32, rows: u32 },
-}
 
 /// Bridges a browser WebSocket to an SSH shell channel. `handle` is held for the
 /// life of the session — dropping it would tear down the underlying SSH connection.

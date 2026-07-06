@@ -1,4 +1,5 @@
 mod cli;
+mod protocol;
 mod routes;
 mod ssh;
 mod state;
@@ -24,11 +25,13 @@ async fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    let identity_key =
-        russh::keys::load_secret_key(&cli.identity_file, cli.key_passphrase.as_deref())?;
-    let state = AppState {
-        identity_key: Arc::new(identity_key),
-    };
+    let identity_key = cli
+        .identity_file
+        .as_ref()
+        .map(|path| russh::keys::load_secret_key(path, cli.key_passphrase.as_deref()))
+        .transpose()?
+        .map(Arc::new);
+    let state = AppState { identity_key };
 
     let app = routes::router(state).layer(TraceLayer::new_for_http());
 

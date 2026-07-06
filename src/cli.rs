@@ -7,8 +7,9 @@ use clap::Parser;
 #[command(about = "Minimal wetty-style web SSH terminal")]
 pub struct Cli {
     /// Path to the SSH private key used to authenticate to every target host.
-    #[arg(long)]
-    pub identity_file: PathBuf,
+    /// If omitted, the user is prompted for a password in the terminal instead.
+    #[arg(short = 'i', long)]
+    pub identity_file: Option<PathBuf>,
 
     /// Passphrase for the identity file, if it is encrypted.
     #[arg(long)]

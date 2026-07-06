@@ -4,5 +4,5 @@ use russh::keys::PrivateKey;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub identity_key: Arc<PrivateKey>,
+    pub identity_key: Option<Arc<PrivateKey>>,
 }

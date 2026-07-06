@@ -54,8 +54,8 @@ async fn ws_handler_query(
 }
 
 fn upgrade(ws: WebSocketUpgrade, state: AppState, target: SshTarget) -> axum::response::Response {
-    ws.on_upgrade(move |socket| async move {
-        match connect_and_shell(&target, state.identity_key.clone()).await {
+    ws.on_upgrade(move |mut socket| async move {
+        match connect_and_shell(&target, state.identity_key.clone(), &mut socket).await {
             Ok((handle, channel)) => handle_socket(socket, handle, channel).await,
             Err(e) => tracing::error!(
                 "ssh connect to {}@{}:{} failed: {e}",
