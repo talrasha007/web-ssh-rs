@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>web-ssh-rs</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/css/xterm.min.css">
+<style>
+  html, body { height: 100%; margin: 0; background: #000; }
+  #terminal { height: 100vh; width: 100vw; }
+</style>
+</head>
+<body>
+<div id="terminal"></div>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.11.0/lib/addon-fit.min.js"></script>
+<script>
+(function () {
+  const term = new Terminal({ cursorBlink: true, scrollback: 5000 });
+  const fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById("terminal"));
+  fitAddon.fit();
+
+  const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  const wsPath = location.pathname.startsWith("/ssh/")
+    ? "/ws/" + location.pathname.slice("/ssh/".length)
+    : "/ws" + location.search;
+  const ws = new WebSocket(wsProto + "//" + location.host + wsPath);
+  ws.binaryType = "arraybuffer";
+
+  function sendResize() {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+    }
+  }
+
+  ws.onopen = () => {
+    fitAddon.fit();
+    sendResize();
+  };
+
+  ws.onmessage = (ev) => {
+    if (ev.data instanceof ArrayBuffer) {
+      term.write(new Uint8Array(ev.data));
+    } else {
+      term.write(ev.data);
+    }
+  };
+
+  ws.onclose = () => {
+    term.write("\r\n\x1b[31m[connection closed]\x1b[0m\r\n");
+  };
+
+  ws.onerror = () => {
+    term.write("\r\n\x1b[31m[connection error]\x1b[0m\r\n");
+  };
+
+  term.onData((data) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "data", data }));
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    fitAddon.fit();
+    sendResize();
+  });
+})();
+</script>
+</body>
+</html>
