@@ -61,7 +61,7 @@ docker run -d -p 8080:8080 \
   web-ssh-rs -i /keys/id_ed25519
 ```
 
-Prebuilt multi-arch (`amd64`/`arm64`) images are published to GHCR on every GitHub release:
+Prebuilt images are published to GHCR on every GitHub release:
 
 ```sh
 docker pull ghcr.io/talrasha007/web-ssh-rs:latest
@@ -74,8 +74,11 @@ as non-root) to keep the OS-level attack surface minimal.
 
 Two independent GitHub Actions workflows run when a release is published:
 
-- **[docker-release.yml](.github/workflows/docker-release.yml)** — builds and pushes the
-  `linux/amd64` + `linux/arm64` image to GHCR, tagged `latest` and the release tag.
+- **[docker-release.yml](.github/workflows/docker-release.yml)** — builds and pushes an image to
+  GHCR, tagged `latest` and the release tag. By default it only builds `linux/amd64`, since
+  `linux/arm64` has to be emulated via QEMU on the `ubuntu-latest` runner and is much slower to
+  build. To also build `linux/arm64` for a given release, run this workflow manually
+  (`workflow_dispatch`) with the release tag and `include_arm64: true`.
 - **[binary-release.yml](.github/workflows/binary-release.yml)** — builds standalone binaries for
   `x86_64`/`aarch64` Linux and `x86_64`/`aarch64` macOS, and uploads them as release assets.
 

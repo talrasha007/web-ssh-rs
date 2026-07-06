@@ -57,7 +57,7 @@ docker run -d -p 8080:8080 \
   web-ssh-rs -i /keys/id_ed25519
 ```
 
-每次发布 GitHub Release 时，会自动构建并推送多架构（`amd64`/`arm64`）镜像到 GHCR：
+每次发布 GitHub Release 时，会自动构建并推送镜像到 GHCR：
 
 ```sh
 docker pull ghcr.io/talrasha007/web-ssh-rs:latest
@@ -70,8 +70,11 @@ docker pull ghcr.io/talrasha007/web-ssh-rs:latest
 
 Release 发布时会触发两个相互独立的 GitHub Actions workflow：
 
-- **[docker-release.yml](.github/workflows/docker-release.yml)** —— 构建并推送
-  `linux/amd64` + `linux/arm64` 镜像到 GHCR，同时打上 `latest` 和 release 版本号两个 tag。
+- **[docker-release.yml](.github/workflows/docker-release.yml)** —— 构建并推送镜像到 GHCR，
+  同时打上 `latest` 和 release 版本号两个 tag。默认只构建 `linux/amd64`，因为 `linux/arm64` 在
+  `ubuntu-latest` runner 上需要通过 QEMU 模拟，构建会慢很多。如果需要给某个 release 补充构建
+  `linux/arm64`，可以手动触发该 workflow（`workflow_dispatch`），填入对应的 release tag 并把
+  `include_arm64` 设为 `true`。
 - **[binary-release.yml](.github/workflows/binary-release.yml)** —— 为
   `x86_64`/`aarch64` Linux 和 `x86_64`/`aarch64` macOS 构建独立二进制文件，并上传到 Release 资源中。
 

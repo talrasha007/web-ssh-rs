@@ -3,6 +3,15 @@ name: Docker Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build and push (used as the image tag)"
+        required: true
+      include_arm64:
+        description: "Also build linux/arm64 (slow: emulated via QEMU)"
+        type: boolean
+        default: false
 
 permissions:
   packages: write
@@ -11,14 +20,29 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Determine tag and platforms
+        id: vars
+        run: |
+          tag="${{ github.event.release.tag_name || github.event.inputs.tag }}"
+          if [ "${{ github.event.inputs.include_arm64 }}" = "true" ]; then
+            platforms="linux/amd64,linux/arm64"
+          else
+            platforms="linux/amd64"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "platforms=$platforms" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.vars.outputs.tag }}
 
       - name: Compute lowercase image name
         id: image
         run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
+        if: contains(steps.vars.outputs.platforms, 'arm64')
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -35,8 +59,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.vars.outputs.platforms }}
           push: true
           tags: |
             ghcr.io/${{ steps.image.outputs.name }}:latest
-            ghcr.io/${{ steps.image.outputs.name }}:${{ github.event.release.tag_name }}
+            ghcr.io/${{ steps.image.outputs.name }}:${{ steps.vars.outputs.tag }}
